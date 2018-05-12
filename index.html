@@ -29,7 +29,38 @@
         }
     }
 
-    //Variable XMLHttpRequest, para realizarlo a full vanillaJS :p xd
+    //Error Handler para FileSystem API
+    function errorHandlerFileSystem(e) {
+        var msg = '';
+        // switch (e.code) {
+            //deprecated
+        //     case FileError.QUOTA_EXCEEDED_ERR:
+        //         msg = 'QUOTA_EXCEEDED_ERR';
+        //         break;
+        //     case FileError.NOT_FOUND_ERR:
+        //         msg = 'NOT_FOUND_ERR';
+        //         break;
+        //     case FileError.SECURITY_ERR:
+        //         msg = 'SECURITY_ERR';
+        //         break;
+        //     case FileError.INVALID_MODIFICATION_ERR:
+        //         msg = 'INVALID_MODIFICATION_ERR';
+        //         break;
+        //     case FileError.INVALID_STATE_ERR:
+        //         msg = 'INVALID_STATE_ERR';
+        //         break;
+        //     default:
+        //         msg = 'Unknown Error';
+        //         break;
+        // };
+        console.log('Error: ' + e.code);
+    }
+
+    /*MAIN*/
+
+    window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
+
+    //Variable XMLHttpRequest, para realizarlo a full vanillaJS, :p xd, se pueden utilizar otras tecnologias como AJAX, JQUERY, ETC.
     var xhr = new XMLHttpRequest();
 
     //Abrimos una consulta GET a un archivo de Drive con LINK Publico | true = Async, false = Sync
@@ -53,9 +84,19 @@
 
             //Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
             if (xhr.response) {
-                var urlBuilder = window.URL || window.webkitURL;
-                document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(xhr.response);
-                document.getElementById("iFramePDF").style.display = 'block';
+                window.requestFileSystem(PERSISTENT, sizeFileBytes, function (fs) {
+                    fs.root.getFile(filename, { create: true }, function (fileEntry) {
+                        fileEntry.createWriter(function (writer) {
+
+                            console.log("1")
+                            var bb = new BlobBuilder();
+                            bb.append(xhr.response);
+                            console.log("2")
+                            writer.write(bb.getBlob('application/pdf'));
+                            console.log("3")
+                        }, errorHandlerFileSystem);
+                    }, errorHandlerFileSystem);
+                }, errorHandlerFileSystem);
             }
 
             // console.log(xhr.response)
