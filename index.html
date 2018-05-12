@@ -1,0 +1,78 @@
+<html>
+<!-- LINK PDF COMPARTIDO -->
+<!-- https://drive.google.com/file/d/0Bxnfj-yjKsboclQ0S005VWctWUU/view -->
+
+<!-- LINK PDF COMPARTIDO DIRECTO A DESCARGA -->
+<!-- https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&authuser=0&export=download -->
+<!-- RESPONSE 302 -> Q REDIRIGE AL LINK DIRECTO DE DESCARGA -->
+<!-- DE ESE LINK SE DEBERA SAKAR EL CONTENTLENGTH Y DESCARGAR EL ARHCHIV -> XHR.RESPONSE -->
+<div name="boo" , id="boo" />
+
+<script>
+	// function get_filesize(url, callback) {
+	// 	// var xhr = new XMLHttpRequest();
+	// 	// xhr.open("HEAD", url, true); // Notice "HEAD" instead of "GET",
+	// 	var xhr = createCORSRequest("HEAD", url)
+	// 	//  to get only the header
+	// 	xhr.onreadystatechange = function () {
+	// 		if (this.readyState == this.DONE) {
+	// 			callback(parseInt(xhr.getResponseHeader("Content-Length")));
+	// 		}
+	// 	};
+	// 	xhr.send();
+	// }
+
+	// get_filesize("https://cors.io/?https://norvig.com/big.txt", function (size) {
+	// 	alert("The size is: " + size + " bytes.");
+	// });
+
+	function createCORSRequest(method, url) {
+		var xhr = new XMLHttpRequest();
+		if ("withCredentials" in xhr) {
+
+			// Check if the XMLHttpRequest object has a "withCredentials" property.
+			// "withCredentials" only exists on XMLHTTPRequest2 objects.
+			xhr.open(method, url, true);
+			console.log(xhr.respon)
+
+		} else if (typeof XDomainRequest != "undefined") {
+
+			// Otherwise, check if XDomainRequest.
+			// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+			xhr = new XDomainRequest();
+			xhr.open(method, url);
+
+		} else {
+
+			// Otherwise, CORS is not supported by the browser.
+			xhr = null;
+
+		}
+		return xhr;
+	}
+
+	(function reconnect() {
+
+		var last_index = 0;
+		var xhr = createCORSRequest('GET', 'https://cors.io/?https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download')
+
+		var nextLine = 0;
+
+		xhr.onreadystatechange = function () {
+			if (this.readyState == this.DONE) {
+				console.log(xhr.getResponseHeader("Content-Length"));
+			}
+		console.log("asd")
+		};
+
+		xhr.onprogress = function () {
+			// var curr_index = xhr.responseText.length;
+			// if (last_index == curr_index) return;
+			// var s = xhr.responseText.substring(last_index, curr_index);
+			// last_index = curr_index;
+			// console.log(s);
+		}
+		xhr.send();
+	}());
+
+</script>
