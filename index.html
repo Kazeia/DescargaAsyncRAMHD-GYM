@@ -6,6 +6,7 @@
 <!-- https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download -->
 <!-- RESPONSE 302 -> Q REDIRIGE AL LINK DIRECTO DE DESCARGA -->
 <!-- DE ESE LINK SE DEBERA SAKAR EL CONTENTLENGTH Y DESCARGAR EL ARHCHIV -> XHR.RESPONSE -->
+<button onclick="lusho();">Click Me!</button>
 <iframe id="iFramePDF" name="iFramePDF" src="" width="100%" height="100%" frameBorder="0" styele="display:none"></iframe>
 
 <script>
@@ -55,39 +56,66 @@
         // };
         console.log(e);
     }
-    abrirPDF = () => {
-        fileSystem.root.getFile(filename, null, function (fileEntry) {
-            fileEntry.file(function (file) {
 
-                var urlBuilder = window.URL || window.webkitURL;
-                document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(file);
-                document.getElementById("iFramePDF").style.display = 'block';
-                // if (window.webkitURL)  // Chrome 10 & 11
-                //     var url = window.webkitURL.createObjectURL(file);
-                // else // Chrome 9
-                //     var url = createObjectURL(file);
-                // document.getElementById('video').src = url;
-                // // Assigning the url
-                // if (window.webkitURL) // Chrome 10 & 11
-                //     var url = window.webkitURL.revokeObjectURL(file);
-                // else // Chrome 9
-                //     var url = revokeObjectURL(file);
-            }, errorHandlerFileSystem);
-        }, errorHandlerFileSystem);
+    lusho = () => {
+        window.requestFileSystem(window.PERSISTENT, sizeFileBytes,
+            (fs) => {
+                fs.root.getFile(fileName, {}, function (fileEntry) {
+
+                    // Get a File object representing the file,
+                    // then use FileReader to read its contents.
+                    fileEntry.file(function (file) {
+                        var reader = new FileReader();
+
+                        reader.onloadend = function (e) {
+
+                            var urlBuilder = window.URL || window.webkitURL;
+                            document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(e);
+                            document.getElementById("iFramePDF").style.display = 'block';
+                        };
+
+                        reader.readAsDataURL(file);
+                    }, errorHandler);
+
+                }, errorHandler);
+            }
+            , errorHandlerFileSystem);
     }
 
-    move = (src, dirName) => {
-        fs.root.getFile(src, {}, function (fileEntry) {
+    // abrirPDF = () => {
+    //     fileSystem.root.getFile(filename, null, function (fileEntry) {
+    //         fileEntry.file(function (file) {
 
-            fs.root.getDirectory(dirName, {}, function (dirEntry) {
-                fileEntry.moveTo(dirEntry);
-            }, errorHandlerFileSystem);
+    //             var urlBuilder = window.URL || window.webkitURL;
+    //             document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(file);
+    //             document.getElementById("iFramePDF").style.display = 'block';
+    //             // if (window.webkitURL)  // Chrome 10 & 11
+    //             //     var url = window.webkitURL.createObjectURL(file);
+    //             // else // Chrome 9
+    //             //     var url = createObjectURL(file);
+    //             // document.getElementById('video').src = url;
+    //             // // Assigning the url
+    //             // if (window.webkitURL) // Chrome 10 & 11
+    //             //     var url = window.webkitURL.revokeObjectURL(file);
+    //             // else // Chrome 9
+    //             //     var url = revokeObjectURL(file);
+    //         }, errorHandlerFileSystem);
+    //     }, errorHandlerFileSystem);
+    // }
 
-        }, errorHandlerFileSystem);
-    }
+    // move = (src, dirName) => {
+    //     fs.root.getFile(src, {}, function (fileEntry) {
+
+    //         fs.root.getDirectory(dirName, {}, function (dirEntry) {
+    //             fileEntry.moveTo(dirEntry);
+    //         }, errorHandlerFileSystem);
+
+    //     }, errorHandlerFileSystem);
+    // }
 
     /*MAIN*/
-
+    var sizeFileBytes = "";
+    var fileName = "";
     window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
 
     //Variable XMLHttpRequest, para realizarlo a full vanillaJS, :p xd, se pueden utilizar otras tecnologias como AJAX, JQUERY, ETC.
@@ -104,12 +132,12 @@
         if (this.readyState == 4 && this.status == 200) {
 
             //Peso del Archivo
-            var sizeFileBytes = xhr.getResponseHeader("Content-Length");
+            sizeFileBytes = xhr.getResponseHeader("Content-Length");
             console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
 
             //Nombre del Archivo
             var disposition = xhr.getResponseHeader('Content-Disposition');
-            var fileName = getFileName(disposition)
+            fileName = getFileName(disposition)
             console.log("Nombre del archivo: " + filename)
 
             //Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
@@ -129,7 +157,7 @@
                                 writer.write(blob);
                                 console.log(blob)
 
-                                move('/' + fileName, "'C:/Users/Kaz/Pictures/Nueva carpeta/papers/test01'");
+                                // move('/' + fileName, "'C:/Users/Kaz/Pictures/Nueva carpeta/papers/test01'");
                             }, errorHandlerFileSystem);
                         }, errorHandlerFileSystem);
                     }, errorHandlerFileSystem);
