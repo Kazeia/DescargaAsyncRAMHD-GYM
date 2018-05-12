@@ -104,7 +104,7 @@
 
             //Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
             if (xhr.response) {
-                window.webkitPersistentStorage.requestQuota(sizeFileBytes, function (grantedBytes) {
+                navigator.webkitPersistentStorage.requestQuota(sizeFileBytes, function (grantedBytes) {
                     window.requestFileSystem(PERSISTENT, grantedBytes, function (fs) {
                         fs.root.getFile(filename, { create: true }, function (fileEntry) {
                             fileEntry.createWriter(function (writer) {
@@ -119,10 +119,10 @@
                                 writer.write(blob);
                                 console.log(blob)
 
-                                abrirPDF(filename);
                             }, errorHandlerFileSystem);
                         }, errorHandlerFileSystem);
                     }, errorHandlerFileSystem);
+                    abrirPDF(filename);
                 }, errorHandlerFileSystem);
             }
 
