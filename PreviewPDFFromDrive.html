@@ -6,10 +6,12 @@
 <!-- https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download -->
 <!-- RESPONSE 302 -> Q REDIRIGE AL LINK DIRECTO DE DESCARGA -->
 <!-- DE ESE LINK SE DEBERA SAKAR EL CONTENTLENGTH Y DESCARGAR EL ARHCHIV -> XHR.RESPONSE -->
-<iframe id="iFramePDF" name="iFramePDF" src=""  width="100%" height="100%" frameBorder="0" styele="display:none"></iframe>
- 
+<iframe id="iFramePDF" name="iFramePDF" src="" width="100%" height="100%" frameBorder="0" styele="display:none"></iframe>
+
 <script>
-	function formatBytes(bytes, decimals) {
+
+	//Funcion que permite formatear bytes a KB, MB, GB, etc.
+	formatBytes = (bytes, decimals) => {
 		if (bytes == 0) return '0 Bytes';
 		var k = 1024,
 			dm = decimals || 2,
@@ -18,44 +20,46 @@
 		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 	}
 
-	(function reconnect() {
+	//Funcion que permite obtener del responseHeader.Disposition el nombre del archivo.
+	getFileName = (disposition) => {
+		if (disposition && disposition.indexOf('attachment') !== -1) {
+			var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+			var matches = filenameRegex.exec(disposition);
+			if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+		}
+	}
 
-		var xhr = new XMLHttpRequest();
-		xhr.open("GET", "https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download", true);
-		xhr.responseType = 'blob';
-		// xhr.overrideMimeType('application/pdf; charset=UTF-8');
+	//Variable XMLHttpRequest, para realizarlo a full vanillaJS :p xd
+	var xhr = new XMLHttpRequest();
 
-		xhr.onreadystatechange = function () {
-			if (this.readyState == 4 && this.status == 200) {
-				console.log("Tamaño de archivo: " + formatBytes(xhr.getResponseHeader("Content-Length")));
+	//Abrimos una consulta GET a un archivo de Drive con LINK Publico | true = Async, false = Sync
+	xhr.open("GET", "https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download", true);
+	//#Opcional Tipo Blob 
+	xhr.responseType = 'blob';
+	//#Opcional Tipo MimeType
+	// xhr.overrideMimeType('application/pdf; charset=UTF-8');
 
-				var filename = "";
-				var disposition = xhr.getResponseHeader('Content-Disposition');
-				if (disposition && disposition.indexOf('attachment') !== -1) {
-					var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-					var matches = filenameRegex.exec(disposition);
-					if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
-				}
-				console.log(filename)
+	xhr.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200) {
 
-				if (xhr.response) {
-					var urlBuilder = window.URL || window.webkitURL;
-					document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(xhr.response);
-                    document.getElementById("iFramePDF").style.display = 'block';         
-				}
+			//Peso del Archivo
+			var sizeFileBytes = xhr.getResponseHeader("Content-Length");
+			console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
 
-				// console.log(xhr.response)
+			//Nombre del Archivo
+			var disposition = xhr.getResponseHeader('Content-Disposition');
+			var fileName = getFileName(disposition)
+			console.log("Nombre del archivo: " + filename)
+
+			//Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
+			if (xhr.response) {
+				var urlBuilder = window.URL || window.webkitURL;
+				document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(xhr.response);
+				document.getElementById("iFramePDF").style.display = 'block';
 			}
-		};
+		}
+	};
 
-		// xhr.onprogress = function () {
-		// 	// var curr_index = xhr.responseText.length;
-		// 	// if (last_index == curr_index) return;
-		// 	// var s = xhr.responseText.substring(last_index, curr_index);
-		// 	// last_index = curr_index;
-		// 	// console.log(s);
-		// }
-		xhr.send();
-	}());
+	xhr.send();
 
 </script>
