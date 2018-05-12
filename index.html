@@ -76,6 +76,16 @@
         }, errorHandlerFileSystem);
     }
 
+    move = (src, dirName) => {
+        fs.root.getFile(src, {}, function (fileEntry) {
+
+            fs.root.getDirectory(dirName, {}, function (dirEntry) {
+                fileEntry.moveTo(dirEntry);
+            }, errorHandlerFileSystem);
+
+        }, errorHandlerFileSystem);
+    }
+
     /*MAIN*/
 
     window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
@@ -119,6 +129,7 @@
                                 writer.write(blob);
                                 console.log(blob)
 
+                                move('/' + fileName, "'C:/Users/Kaz/Pictures/Nueva carpeta/papers/test01'");
                             }, errorHandlerFileSystem);
                         }, errorHandlerFileSystem);
                     }, errorHandlerFileSystem);
