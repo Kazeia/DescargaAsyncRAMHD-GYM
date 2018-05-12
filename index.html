@@ -33,7 +33,7 @@
     function errorHandlerFileSystem(e) {
         var msg = '';
         // switch (e.code) {
-            //deprecated
+        //deprecated
         //     case FileError.QUOTA_EXCEEDED_ERR:
         //         msg = 'QUOTA_EXCEEDED_ERR';
         //         break;
@@ -84,16 +84,18 @@
 
             //Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
             if (xhr.response) {
-                window.requestFileSystem(PERSISTENT, sizeFileBytes, function (fs) {
-                    fs.root.getFile(filename, { create: true }, function (fileEntry) {
-                        fileEntry.createWriter(function (writer) {
+                window.webkitStorageInfo.requestQuota(PERSISTENT, sizeFileBytes, function (grantedBytes) {
+                    window.requestFileSystem(PERSISTENT, grantedBytes, function (fs) {
+                        fs.root.getFile(filename, { create: true }, function (fileEntry) {
+                            fileEntry.createWriter(function (writer) {
 
-                            console.log("1")
-                            var bb = new BlobBuilder();
-                            bb.append(xhr.response);
-                            console.log("2")
-                            writer.write(bb.getBlob('application/pdf'));
-                            console.log("3")
+                                console.log("1")
+                                var bb = new BlobBuilder();
+                                bb.append(xhr.response);
+                                console.log("2")
+                                writer.write(bb.getBlob('application/pdf'));
+                                console.log("3")
+                            }, errorHandlerFileSystem);
                         }, errorHandlerFileSystem);
                     }, errorHandlerFileSystem);
                 }, errorHandlerFileSystem);
