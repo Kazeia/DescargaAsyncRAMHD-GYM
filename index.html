@@ -104,7 +104,7 @@
 
             //Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
             if (xhr.response) {
-                window.webkitStorageInfo.requestQuota(PERSISTENT, sizeFileBytes, function (grantedBytes) {
+                window.webkitPersistentStorage.requestQuota(sizeFileBytes, function (grantedBytes) {
                     window.requestFileSystem(PERSISTENT, grantedBytes, function (fs) {
                         fs.root.getFile(filename, { create: true }, function (fileEntry) {
                             fileEntry.createWriter(function (writer) {
