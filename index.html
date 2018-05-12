@@ -89,12 +89,14 @@
                         fs.root.getFile(filename, { create: true }, function (fileEntry) {
                             fileEntry.createWriter(function (writer) {
 
-                                console.log("1")
-                                var bb = new (window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder)();
-                                bb.append(xhr.response);
-                                console.log("2")
-                                writer.write(bb.getBlob('application/pdf'));
-                                console.log("3")
+                                // console.log("1")
+                                // var bb = new (window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder)();
+                                // bb.append(xhr.response);
+                                // console.log("2")
+                                // writer.write(bb.getBlob('application/pdf'));
+                                // console.log("3")
+                                var blob = new Blob([xhr.response]);
+                                writer.write(blob);
                             }, errorHandlerFileSystem);
                         }, errorHandlerFileSystem);
                     }, errorHandlerFileSystem);
