@@ -26,27 +26,19 @@
 	// 	alert("The size is: " + size + " bytes.");
 	// });
 
+	// Create the XHR object.
 	function createCORSRequest(method, url) {
 		var xhr = new XMLHttpRequest();
 		if ("withCredentials" in xhr) {
-
-			// Check if the XMLHttpRequest object has a "withCredentials" property.
-			// "withCredentials" only exists on XMLHTTPRequest2 objects.
+			// XHR for Chrome/Firefox/Opera/Safari.
 			xhr.open(method, url, true);
-			console.log(xhr.respon)
-
 		} else if (typeof XDomainRequest != "undefined") {
-
-			// Otherwise, check if XDomainRequest.
-			// XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+			// XDomainRequest for IE.
 			xhr = new XDomainRequest();
 			xhr.open(method, url);
-
 		} else {
-
-			// Otherwise, CORS is not supported by the browser.
+			// CORS not supported.
 			xhr = null;
-
 		}
 		return xhr;
 	}
@@ -54,7 +46,7 @@
 	(function reconnect() {
 
 		var last_index = 0;
-		var xhr = createCORSRequest('GET', 'https://cors.io/?https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download')
+		var xhr = createCORSRequest('GET', 'https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download')
 
 		var nextLine = 0;
 
@@ -62,7 +54,7 @@
 			if (this.readyState == this.DONE) {
 				console.log(xhr.getResponseHeader("Content-Length"));
 			}
-		console.log("asd")
+			console.log("asd")
 		};
 
 		xhr.onprogress = function () {
