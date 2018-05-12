@@ -55,6 +55,26 @@
         // };
         console.log(e);
     }
+    abrirPDF = () => {
+        fileSystem.root.getFile(filename, null, function (fileEntry) {
+            fileEntry.file(function (file) {
+
+                var urlBuilder = window.URL || window.webkitURL;
+                document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(file);
+                document.getElementById("iFramePDF").style.display = 'block';
+                // if (window.webkitURL)  // Chrome 10 & 11
+                //     var url = window.webkitURL.createObjectURL(file);
+                // else // Chrome 9
+                //     var url = createObjectURL(file);
+                // document.getElementById('video').src = url;
+                // // Assigning the url
+                // if (window.webkitURL) // Chrome 10 & 11
+                //     var url = window.webkitURL.revokeObjectURL(file);
+                // else // Chrome 9
+                //     var url = revokeObjectURL(file);
+            }, errorHandlerFileSystem);
+        }, errorHandlerFileSystem);
+    }
 
     /*MAIN*/
 
@@ -98,6 +118,8 @@
                                 var blob = new Blob([xhr.response]);
                                 writer.write(blob);
                                 console.log(blob)
+
+                                abrirPDF(filename);
                             }, errorHandlerFileSystem);
                         }, errorHandlerFileSystem);
                     }, errorHandlerFileSystem);
