@@ -55,6 +55,7 @@
 
 			//Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
 			if (xhr.response) {
+				console.log(xhr.response)
 				var urlBuilder = window.URL || window.webkitURL;
 				document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(xhr.response);
 				document.getElementById("iFramePDF").style.display = 'block';

@@ -54,7 +54,7 @@
 
     var sizeFileBytes = ""
     var fileName = ""
-    var chunks=new Uint8Array();
+    var chunks = new Uint8Array();
 
     fetch("https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download",
         {
@@ -72,7 +72,7 @@
                             // Is there no more data to read?
                             if (done) {
                                 // Tell the browser that we have finished sending data
-                                var blob = new Blob([chunks], {type:"application/pdf"});
+                                var blob = new Blob([chunks], { type: "application/pdf" });
                                 console.log(blob)
 
                                 var urlBuilder = window.URL || window.webkitURL;
@@ -82,7 +82,7 @@
                                 return;
                             }
                             // chunks += value;
-                            chunks=appendBuffer(chunks,value)
+                            chunks = appendBuffer(chunks, value)
                             console.log(chunks)
 
                             // Get the data and send it to the browser via the controller
@@ -93,89 +93,5 @@
                     push();
                 }
             });
-
-            // return new Response(stream, { headers: { "Content-Type": "application/pdf" } });
-
-            //     if (response.done) { return; }
-
-            //     sizeFileBytes = response.headers.get("Content-Length");
-            //     console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
-
-            //     let disposition = response.headers.get('Content-Disposition');
-            //     fileName = getFileName(disposition);
-            //     console.log("Nombre del archivo: " + filename)
-
-            //     return consume(response.body.getReader());
-            // }).then(chunks => {
-            //     var lusho=new Blob([chunks]);
-            //     console.log(lusho)
-            //     // console.log(chunks);
         }).catch(errorHandlerFileSystem);
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // lusho = () => {
-    //     window.requestFileSystem(window.PERSISTENT, sizeFileBytes,
-    //         (fs) => {
-    //             fs.root.getFile(fileName, {}, function (fileEntry) {
-
-    //                 // Get a File object representing the file,
-    //                 // then use FileReader to read its contents.
-    //                 fileEntry.file(function (file) {
-    //                     var reader = new FileReader();
-
-    //                     reader.onloadend = function (e) {
-
-    //                         var urlBuilder = window.URL || window.webkitURL;
-    //                         document.getElementById("iFramePDF").src = urlBuilder.createObjectURL(e);
-    //                         document.getElementById("iFramePDF").style.display = 'block';
-    //                     };
-
-    //                     reader.readAsDataURL(file);
-    //                 }, errorHandlerFileSystem);
-
-    //             }, errorHandlerFileSystem);
-    //         }
-    //         , errorHandlerFileSystem);
-    // }
-
-    // move = (src, dirName) => {
-    //     fs.root.getFile(src, {}, function (fileEntry) {
-
-    //         fs.root.getDirectory(dirName, {}, function (dirEntry) {
-    //             fileEntry.moveTo(dirEntry);
-    //         }, errorHandlerFileSystem);
-
-    //     }, errorHandlerFileSystem);
-    // }
-
-         //Si se optiene una respuesta del servidor -> envia como chunks a xhr.response, en caso se haya abierto el xhr como Async, de lo contrario detendra el hilo principal hasta q se haya descargado el archivo
-            // if (xhr.response) {
-            //     navigator.webkitPersistentStorage.requestQuota(sizeFileBytes, function (grantedBytes) {
-            //         window.requestFileSystem(PERSISTENT, grantedBytes, function (fs) {
-            //             fs.root.getFile(filename, { create: true }, function (fileEntry) {
-            //                 fileEntry.createWriter(function (writer) {
-
-
-            //                     // var blob = new Blob([xhr.response]);
-            //                     writer.write(new Blob([xhr.response]));
-            //                     console.log(writer)
-
-            //                     // move('/' + fileName, "'C:/Users/Kaz/Pictures/Nueva carpeta/papers/test01'");
-            //                 }, errorHandlerFileSystem);
-            //             }, errorHandlerFileSystem);
-            //         }, errorHandlerFileSystem);
-            //     }, errorHandlerFileSystem);
-            // }
-
 </script>
