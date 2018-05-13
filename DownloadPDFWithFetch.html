@@ -1,0 +1,90 @@
+<html>
+<!-- LINK PDF COMPARTIDO -->
+<!-- https://drive.google.com/file/d/0Bxnfj-yjKsboclQ0S005VWctWUU/view -->
+
+<!-- LINK PDF COMPARTIDO DIRECTO A DESCARGA -->
+<!-- https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download -->
+<!-- RESPONSE 302 -> Q REDIRIGE AL LINK DIRECTO DE DESCARGA -->
+<!-- DE ESE LINK SE DEBERA SAKAR EL CONTENTLENGTH Y DESCARGAR EL ARHCHIV -> XHR.RESPONSE -->
+<button onclick="lusho();">Click Me!</button>
+<script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
+<script>
+
+    //Funcion que permite formatear bytes a KB, MB, GB, etc.
+    formatBytes = (bytes, decimals) => {
+        if (bytes == 0) return '0 Bytes';
+        var k = 1024,
+            dm = decimals || 2,
+            sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+            i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    //Funcion que permite obtener del responseHeader.Disposition el nombre del archivo.
+    getFileName = (disposition) => {
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            var matches = filenameRegex.exec(disposition);
+            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+        }
+    }
+
+    errorHandlerFileSystem = (e) => {
+        console.log(e)
+    }
+
+    appendBuffer = (buffer1, buffer2) => {
+        var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+        tmp.set(new Uint8Array(buffer1), 0);
+        tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+        return tmp.buffer;
+    };
+
+    var sizeFileBytes = ""
+    var fileName = ""
+    var chunks = new Uint8Array();
+    lusho = () => {
+
+        fetch("https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download",
+            {
+                method: 'GET',
+                mode: 'cors',
+                redirect: 'follow'
+            }).then(response => {
+
+                sizeFileBytes = response.headers.get("Content-Length");
+                console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
+
+                let disposition = response.headers.get('Content-Disposition');
+                fileName = getFileName(disposition);
+                console.log("Nombre del archivo: " + filename)
+
+                const reader = response.body.getReader();
+                const stream = new ReadableStream({
+                    start(controller) {
+                        // The following function handles each data chunk
+                        function push() {
+                            // "done" is a Boolean and value a "Uint8Array"
+                            reader.read().then(({ done, value }) => {
+                                // Is there no more data to read?
+                                if (done) {
+                                    // Tell the browser that we have finished sending data
+                                    var blob = new Blob([chunks], { type: "octet/stream" });
+                                    saveAs(blob, filename);
+
+                                    controller.close();
+                                    return;
+                                }
+                                chunks = appendBuffer(chunks, value)
+
+                                // Get the data and send it to the browser via the controller
+                                controller.enqueue(value);
+                                push();
+                            });
+                        };
+                        push();
+                    }
+                });
+            }).catch(errorHandlerFileSystem);
+    }
+</script>
