@@ -1,20 +1,21 @@
 <html>
-<!-- LINK PDF COMPARTIDO -->
-<!-- https://drive.google.com/file/d/0Bxnfj-yjKsboclQ0S005VWctWUU/view -->
+<!--
+    AUTHOR: David Silva Solano
+    Motivation: For fun :)
+-->
 
-<!-- LINK PDF COMPARTIDO DIRECTO A DESCARGA -->
-<!-- https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download -->
-<!-- RESPONSE 302 -> Q REDIRIGE AL LINK DIRECTO DE DESCARGA -->
-<!-- DE ESE LINK SE DEBERA SAKAR EL CONTENTLENGTH Y DESCARGAR EL ARHCHIV -> XHR.RESPONSE -->
-<input type="text" name="IDLink" placeholder="Ingresa un link Público de Drive para Descargar" id="IDLink" style="width: 850px;">
-<button onclick="lusho();">Click Me!</button>
+<input type="text" name="IDLink" placeholder="Public ID-Link of GoogleDrive" id="IDLink" style="width: 850px;">
+
+<!-- Start Download -->
+<button onclick="download();">Download Now!</button>
 
 <br>
 
+<!-- GMI SVG -->
 <svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
     <g>
-        <title>SVG para Descarga</title>
-        <rect x="0" y="0" width="600" height="600" id="canvas_background" fill="#fff" />
+        <title>SVG for download</title>
+        <rect id="canvas_background" opacity="0" fill="#fff" x="0" y="0" opa width="600" height="600" />
         <g id="canvasGrid" display="none">
             <rect id="svg_9" width="100%" height="100%" x="0" y="0" stroke-width="0" fill="url(#gridpattern)" />
         </g>
@@ -34,118 +35,177 @@
             text-anchor="start" xml:space="preserve" font-style="italic" font-weight="normal">0%</text>
     </g>
 </svg>
+
+<!-- FileSaver allow download a file in LocalStorage -->
 <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
 <script>
 
-    //Funcion que permite formatear bytes a KB, MB, GB, etc.
+    //Return a format length of bytes: KB, MG, GB, etc. -> String
     formatBytes = (bytes, decimals) => {
+
         if (bytes == 0) return '0 Bytes';
-        var k = 1024,
+
+        let k = 1024,
             dm = decimals || 2,
             sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
             i = Math.floor(Math.log(bytes) / Math.log(k));
+
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    //Funcion que permite obtener del responseHeader.Disposition el nombre del archivo.
+    //Return filename content of responseHeader.Disposition -> string
     getFileName = (disposition) => {
+
         if (disposition && disposition.indexOf('attachment') !== -1) {
-            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            var matches = filenameRegex.exec(disposition);
-            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+
+            let filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            let matches = filenameRegex.exec(disposition);
+
+            if (matches != null && matches[1]) return matches[1].replace(/['"]/g, '');
         }
     }
 
-    errorHandlerFileSystem = (e) => {
+    //Error handler -> void()
+    errorHandler = (e) => {
+
         console.log(e)
     }
 
+    //Allow append two buffers -> Uint8Array
     appendBuffer = (buffer1, buffer2) => {
-        var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+
+        let tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
         tmp.set(new Uint8Array(buffer1), 0);
         tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+
         return tmp.buffer;
     };
-    getProgressDownload = (chkTotal) => {
-        return (chkTotal * 100) / sizeFileBytes;
-    }
-    refreshSVGDownload = () => {
 
-        let indexSVG = parseInt(progress / 12.5);
-        let opacitySVG = progress / (12.5 * (indexSVG + 1));
+    //Return Progress downloaded in relation of 100 percent. -> int
+    getProgressDownloaded = (chunkTotal, sizeFileBytes) => {
+
+        return (this.chunkTotal * 100) / this.sizeFileBytes;
+    }
+
+    //RefreshSVG sync with progress
+    refreshSVGDownload = (progress) => {
+
+        let indexSVG = parseInt(this.progress / 12.5);
+        let opacitySVG = this.progress / (12.5 * (indexSVG + 1));
+        console.log(progress)
         document.getElementById("svg_" + indexSVG).setAttribute("opacity", opacitySVG);
     }
-    refreshTextDownload = () => {
 
-        document.getElementById("svg_8").textContent = progress + "%"
+    //RefreshTXT sync with progress
+    refreshTextDownload = (progress) => {
+
+        document.getElementById("svg_8").textContent = this.progress + "%"
     }
 
-    var sizeFileBytes = ""
-    var fileName = ""
-    var chunks = new Uint8Array();
-    var chunkTotal = 0;
-    var progress = 0;
-    lusho = () => {
+    //Variables
+    //The amount of file in bytes 
+    var sizeFileBytes,
 
-        let IDLink = document.getElementById("IDLink").value;
-        // ejemplo: https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download 
-        // https://drive.google.com/open?id=1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk
-        // https://drive.google.com/uc?export=download&id=1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk
+        //The Name of File
+        fileName,
 
-        // https://doc-14-3c-docs.googleusercontent.com/docs/securesc/0gmdl5jglh6ptcols1qfvr4k2ntdfb3i/rcisvou9qtr8gr3ocd2shgp1l6itjpf0/1526191200000/10396222122198911151/10396222122198911151/0Bxnfj-yjKsboclQ0S005VWctWUU?e=download
+        //Small pieces of chunks
+        chunks,
 
-// https://doc-08-3c-docs.googleusercontent.com/docs/securesc/0gmdl5jglh6ptcols1qfvr4k2ntdfb3i/cbh81rgg4hlviqbrhje95pt487iu641a/1526191200000/10396222122198911151/10396222122198911151/1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk?e=download
+        //The chunk total downloaded
+        chunkTotal,
 
-        fetch("https://cors-anywhere.herokuapp.com/"+IDLink,
-            {
-                method: 'GET',
-                mode: 'cors',
-                redirect: 'follow'
-            }).then(response => {
+        //The progress of download(0% - 100%)
+        progress,
 
-                document.getElementById("svg_8").setAttribute("opacity",1);
+        //Start download
+        download = () => {
 
-                sizeFileBytes = response.headers.get("Content-Length");
-                console.log("Tamaño en bytes: " + sizeFileBytes);
-                console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
+            //Here we instantiate variables.
+            //The amount of file in bytes 
+            sizeFileBytes = "";
 
-                let disposition = response.headers.get('Content-Disposition');
-                fileName = getFileName(disposition);
-                console.log("Nombre del archivo: " + filename)
+            //The Name of File
+            fileName = "";
 
-                const reader = response.body.getReader();
-                const stream = new ReadableStream({
-                    start(controller) {
-                        // The following function handles each data chunk
-                        function push() {
-                            // "done" is a Boolean and value a "Uint8Array"
-                            reader.read().then(({ done, value }) => {
-                                // Is there no more data to read?
-                                if (done) {
-                                    // Tell the browser that we have finished sending data
-                                    var blob = new Blob([chunks], { type: "octet/stream" });
-                                    saveAs(blob, filename);
+            //Small pieces of chunks
+            chunks = new Uint8Array();
 
-                                    controller.close();
-                                    return;
-                                }
-                                chunkTotal += value.length;
-                                progress = getProgressDownload(chunkTotal)
+            //The chunk total downloaded
+            chunkTotal = 0;
 
-                                refreshTextDownload();
-                                refreshSVGDownload();
-                                console.log(progress);
+            //The progress of download(0% - 100%)
+            progress = 0;
 
-                                chunks = appendBuffer(chunks, value)
+            let IDLink = document.getElementById("IDLink").value;
+            // Con content-length: 0Bxnfj-yjKsboclQ0S005VWctWUU
+            // Sin content-length: 1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk
 
-                                // Get the data and send it to the browser via the controller
-                                controller.enqueue(value);
-                                push();
-                            });
-                        };
-                        push();
-                    }
-                });
-            }).catch(errorHandlerFileSystem);
-    }
+            fetch("https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?export=download&id=" + IDLink,
+                {
+                    method: 'GET',
+                    mode: 'cors',
+                    redirect: 'follow'
+                }).then(response => {
+
+                    //Enable visibility of text and Background, check use case
+                    document.getElementById("canvas_background").setAttribute("opacity", 1);
+                    document.getElementById("svg_8").setAttribute("opacity", 1);
+
+                    //Get SizeFile
+                    sizeFileBytes = response.headers.get("Content-Length");
+                    console.log("Tamaño en bytes: " + sizeFileBytes);
+                    console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
+
+                    //Get FileNameileName
+                    let disposition = response.headers.get('Content-Disposition');
+                    fileName = getFileName(disposition);
+                    console.log("Nombre del archivo: " + fileName)
+
+                    //getReader -> Firefox not supported :|
+                    const reader = response.body.getReader();
+                    const stream = new ReadableStream({
+
+                        //getControl over Stream
+                        start(controller) {
+
+                            //The following function handles each data chunk
+                            function push() {
+
+                                //"done" is a Boolean and value a "Uint8Array"
+                                reader.read().then(({ done, value }) => {
+
+                                    //Is there no more data to read?
+                                    if (done) {
+
+                                        //Tell the browser that we have finished sending data and ask to user where save the file.
+                                        var blob = new Blob([chunks], { type: "octet/stream" });
+                                        saveAs(blob, fileName);
+
+                                        controller.close();
+                                        return;
+                                    }
+
+                                    //Each chunk of stream download
+                                    chunkTotal += value.length;
+                                    progress = getProgressDownloaded(chunkTotal, sizeFileBytes)
+
+                                    //Refresh UIDownload
+                                    refreshTextDownload(progress);
+                                    refreshSVGDownload(progress);
+                                    console.log(progress);
+
+                                    //The append of chunks
+                                    chunks = appendBuffer(chunks, value)
+
+                                    // Get the data and send it to the browser via the controller
+                                    controller.enqueue(value);
+                                    push();
+                                });
+                            };
+                            push();
+                        }
+                    });
+                }).catch(errorHandler);
+        }
 </script>
