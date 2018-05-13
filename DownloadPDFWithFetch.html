@@ -88,7 +88,7 @@
     }
 
     //RefreshSVGLogo sync with progress
-    refreshSVGLogoDownload = (progress, arraySVGLogo) => {
+    refreshSVGLogoDownloadAnim1 = (progress, arraySVGLogo) => {
 
         //TotalDownload = 100% -> 100/12.6 = 7.936..., parseInt(7.936...) -> 7, we only have 7 rect SVG Logo 
         let indexSVG = parseInt(progress / 12.6);
@@ -97,18 +97,22 @@
     }
 
     //RefreshSVGText sync with progress
-    refreshSVGTextDownload = (sizeFileBytes, progress, SVGText) => {
+    refreshSVGTextDownloadAnim1 = (sizeFileBytes, progress, SVGText) => {
 
-        if (sizeFileBytes)
-            SVGText.textContent = progress.toFixed(2) + "%"
-        // document.getElementById("svg_8").textContent = progress.toFixed(2) + "%"
-        // else
-        // document.getElementById("svg_8").textContent=this.
+        SVGText.textContent = progress.toFixed(2) + "%"
+    }
+
+    //RefreshSVGText sync with bytes downloaded
+    refreshSVGTextDownloadAnim2 = (chunkTotal, SVGText) => {
+
+        SVGText.setAttribute("font-size", "39")
+        SVGText.textContent = formatBytes(chunkTotal)
     }
 
     //Initial animation, only for UX purposes
     animSVGInitDownload = (SVGText, arraySVGLogo) => {
 
+        document.getElementById("canvas_background").setAttribute("opacity", 1);
         SVGText.setAttribute("font-size", "29")
         SVGText.setAttribute("opacity", "1")
         arraySVGLogo.forEach(element => {
@@ -138,7 +142,7 @@
 
     //ResetSVGLogo and SVGText, for AnimDownload1
     resetForAnim1 = (SVGText, arraySVGLogo, initialColorsSVGLogo) => {
-        
+
         for (let i = 0; i < arraySVGLogo.length; i++) {
             arraySVGLogo[i].setAttribute("opacity", "0");
             arraySVGLogo[i].setAttribute("fill", initialColorsSVGLogo[i])
@@ -187,7 +191,6 @@
             initialColorsSVGLogo[i] = arraySVGLogo[i].getAttribute("fill");
         }
 
-
         //Anim Initial
         animSVGInitDownload(SVGText, arraySVGLogo);
 
@@ -205,24 +208,26 @@
                     //RemoveInitDownload and reset The SVG and TXT content
                     console.log("kill timeout of init Anim")
                     clearTimeout(animLoadingGYM)
-                    SVGText.setAttribute("font-size","50")
+                    SVGText.setAttribute("font-size", "50")
                     SVGText.textContent = "Error"
                 }
                 else if (response.status === 200) {
 
-                    //RemoveInitDownload and reset The SVG and TXT content
-                    console.log("kill timeout of init Anim")
-                    clearTimeout(animLoadingGYM)
-
                     //Enable visibility of text and Background, check use case
-                    document.getElementById("canvas_background").setAttribute("opacity", 1);
-                    document.getElementById("svg_8").setAttribute("opacity", 1);
+                    // document.getElementById("canvas_background").setAttribute("opacity", 1);
+                    // document.getElementById("svg_8").setAttribute("opacity", 1);
 
                     //Get SizeFile
                     sizeFileBytes = response.headers.get("Content-Length");
                     if (sizeFileBytes) {
                         console.log("Tamaño en bytes: " + sizeFileBytes);
                         console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
+
+                        //RemoveInitDownload and reset The SVG and TXT content
+                        console.log("kill timeout of init Anim")
+                        clearTimeout(animLoadingGYM)
+
+                        //Reset default params for start Anim1
                         resetForAnim1(SVGText, arraySVGLogo, initialColorsSVGLogo);
                     }
                     else console.log("Tamaño de bytes 0, debido a q no posee un content-length")
@@ -232,7 +237,7 @@
                     fileName = getFileName(disposition);
                     console.log("Nombre del archivo: " + fileName)
 
-                    //getReader -> Firefox not supported :|
+                    //getReader -> Firefox not supported :|, allow download a file in chunks
                     const reader = response.body.getReader();
                     const stream = new ReadableStream({
 
@@ -248,23 +253,36 @@
                                     //Is there no more data to read?
                                     if (done) {
 
+                                        //Stop animation without Content-Length
+                                        if (!sizeFileBytes) clearTimeout(animLoadingGYM)
+
                                         //Tell the browser that we have finished sending data and ask to user where save the file.
                                         var blob = new Blob([chunks], { type: "octet/stream" });
                                         saveAs(blob, fileName);
-                                        console.log("Enviar solicitud al Agente de Cerrar el link Público");
+
+                                        console.log("Enviar solicitud al Agente para cerrar el link Público");
                                         controller.close();
                                         return;
                                     }
 
                                     //Each chunk of stream download
                                     chunkTotal += value.length;
-                                    progress = getProgressDownloaded(chunkTotal, sizeFileBytes)
 
-                                    //Refresh UIDownload
-                                    refreshSVGTextDownload(sizeFileBytes, progress, SVGText);
+                                    //Anim with content length?
+                                    if (sizeFileBytes) {
 
-                                    refreshSVGLogoDownload(progress, arraySVGLogo);
-                                    console.log(progress);
+                                        progress = getProgressDownloaded(chunkTotal, sizeFileBytes)
+
+                                        //Refresh SVG
+                                        refreshSVGTextDownloadAnim1(sizeFileBytes, progress, SVGText);
+                                        refreshSVGLogoDownloadAnim1(progress, arraySVGLogo);
+                                        console.log(progress);
+                                    } else {
+
+                                        //Refresh SVG
+                                        refreshSVGTextDownloadAnim2(chunkTotal, SVGText);
+                                        console.log(chunkTotal);
+                                    }
 
                                     //The append of chunks
                                     chunks = appendBuffer(chunks, value)
