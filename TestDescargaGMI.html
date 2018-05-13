@@ -51,12 +51,12 @@
         download = () => {
 
             setInterval(() => {
-                if(progress===100)return
-                else progress++;
-                // progress++;//x ahora con contadores
+                progress++;
+                console.log(progress);
+                if(progress===100)return;
+
                 refreshTextDownload();
                 refreshSVGDownload();
-                console.log(progress)
             }, 1000);
         }
     </script>
