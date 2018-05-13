@@ -28,7 +28,7 @@
             <rect id="svg_5" opacity="0" fill="#f6861f" stroke="#000" stroke-width="0" x="200" width="200" height="200" y="400" />
             <rect id="svg_6" opacity="0" fill="#f8971d" stroke="#000" stroke-width="0" x="0" width="200" height="200" y="400" />
             <rect id="svg_7" opacity="0" fill="#fbaa19" stroke="#000" stroke-width="0" x="0" width="200" height="200" y="200" />
-            
+
             <!-- <rect id="svg_6" opacity="0" fill="#f8971d" stroke="#000" stroke-width="0" x="200" width="200" height="200" y="400" /> -->
             <text id="svg_9" opacity="1" fill="#f6861f" stroke="#000" stroke-width="0" x="236.075" y="317.5" font-size="50" font-family="Euphoria, sans-serif"
                 text-anchor="start" xml:space="preserve" font-style="italic" font-weight="normal">0%</text>
@@ -51,10 +51,10 @@
         download = () => {
 
             setInterval(() => {
-                progress++;
                 console.log(progress);
-                if(progress===100)return;
+                if (progress >= 100) return;
 
+                progress++;
                 refreshTextDownload();
                 refreshSVGDownload();
             }, 1000);

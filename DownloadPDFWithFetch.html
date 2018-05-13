@@ -6,7 +6,34 @@
 <!-- https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download -->
 <!-- RESPONSE 302 -> Q REDIRIGE AL LINK DIRECTO DE DESCARGA -->
 <!-- DE ESE LINK SE DEBERA SAKAR EL CONTENTLENGTH Y DESCARGAR EL ARHCHIV -> XHR.RESPONSE -->
+<input type="text" name="IDLink" placeholder="Ingresa un link Público de Drive para Descargar" id="IDLink" style="width: 850px;">
 <button onclick="lusho();">Click Me!</button>
+
+<br>
+
+<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
+    <g>
+        <title>SVG para Descarga</title>
+        <rect x="0" y="0" width="600" height="600" id="canvas_background" fill="#fff" />
+        <g id="canvasGrid" display="none">
+            <rect id="svg_9" width="100%" height="100%" x="0" y="0" stroke-width="0" fill="url(#gridpattern)" />
+        </g>
+    </g>
+    <g>
+        <title>by: GMI</title>
+        <rect id="svg_0" opacity="0" fill="#fdb913" stroke="#000" stroke-width="0" x="0" y="0" width="200" height="200" />
+        <rect id="svg_1" opacity="0" fill="#fbaa19" stroke="#000" stroke-width="0" x="200" y="0" width="200" height="200" />
+        <rect id="svg_2" opacity="0" fill="#f8971d" stroke="#000" stroke-width="0" x="400" width="200" height="200" />
+        <rect id="svg_3" opacity="0" fill="#f6861f" stroke="#000" stroke-width="0" x="400" width="200" height="200" y="200" />
+        <rect id="svg_4" opacity="0" fill="#f36f21" stroke="#000" stroke-width="0" x="400" width="200" height="200" y="400" />
+        <rect id="svg_5" opacity="0" fill="#f6861f" stroke="#000" stroke-width="0" x="200" width="200" height="200" y="400" />
+        <rect id="svg_6" opacity="0" fill="#f8971d" stroke="#000" stroke-width="0" x="0" width="200" height="200" y="400" />
+        <rect id="svg_7" opacity="0" fill="#fbaa19" stroke="#000" stroke-width="0" x="0" width="200" height="200" y="200" />
+
+        <text id="svg_8" opacity="0" fill="#f6861f" stroke="#000" stroke-width="0" x="236.075" y="317.5" font-size="50" font-family="Euphoria, sans-serif"
+            text-anchor="start" xml:space="preserve" font-style="italic" font-weight="normal">0%</text>
+    </g>
+</svg>
 <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
 <script>
 
@@ -39,20 +66,47 @@
         tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
         return tmp.buffer;
     };
+    getProgressDownload = (chkTotal) => {
+        return (chkTotal * 100) / sizeFileBytes;
+    }
+    refreshSVGDownload = () => {
+
+        let indexSVG = parseInt(progress / 12.5);
+        let opacitySVG = progress / (12.5 * (indexSVG + 1));
+        document.getElementById("svg_" + indexSVG).setAttribute("opacity", opacitySVG);
+    }
+    refreshTextDownload = () => {
+
+        document.getElementById("svg_8").textContent = progress + "%"
+    }
 
     var sizeFileBytes = ""
     var fileName = ""
     var chunks = new Uint8Array();
+    var chunkTotal = 0;
+    var progress = 0;
     lusho = () => {
 
-        fetch("https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download",
+        let IDLink = document.getElementById("IDLink").value;
+        // ejemplo: https://drive.google.com/uc?id=0Bxnfj-yjKsboclQ0S005VWctWUU&export=download 
+        // https://drive.google.com/open?id=1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk
+        // https://drive.google.com/uc?export=download&id=1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk
+
+        // https://doc-14-3c-docs.googleusercontent.com/docs/securesc/0gmdl5jglh6ptcols1qfvr4k2ntdfb3i/rcisvou9qtr8gr3ocd2shgp1l6itjpf0/1526191200000/10396222122198911151/10396222122198911151/0Bxnfj-yjKsboclQ0S005VWctWUU?e=download
+
+// https://doc-08-3c-docs.googleusercontent.com/docs/securesc/0gmdl5jglh6ptcols1qfvr4k2ntdfb3i/cbh81rgg4hlviqbrhje95pt487iu641a/1526191200000/10396222122198911151/10396222122198911151/1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk?e=download
+
+        fetch("https://cors-anywhere.herokuapp.com/"+IDLink,
             {
                 method: 'GET',
                 mode: 'cors',
                 redirect: 'follow'
             }).then(response => {
 
+                document.getElementById("svg_8").setAttribute("opacity",1);
+
                 sizeFileBytes = response.headers.get("Content-Length");
+                console.log("Tamaño en bytes: " + sizeFileBytes);
                 console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
 
                 let disposition = response.headers.get('Content-Disposition');
@@ -75,7 +129,13 @@
                                     controller.close();
                                     return;
                                 }
-                                console.log(value.length)
+                                chunkTotal += value.length;
+                                progress = getProgressDownload(chunkTotal)
+
+                                refreshTextDownload();
+                                refreshSVGDownload();
+                                console.log(progress);
+
                                 chunks = appendBuffer(chunks, value)
 
                                 // Get the data and send it to the browser via the controller
