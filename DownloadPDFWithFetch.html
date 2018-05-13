@@ -31,7 +31,7 @@
         <rect id="svg_6" opacity="0" fill="#f8971d" stroke="#000" stroke-width="0" x="0" width="200" height="200" y="400" />
         <rect id="svg_7" opacity="0" fill="#fbaa19" stroke="#000" stroke-width="0" x="0" width="200" height="200" y="200" />
 
-        <text id="svg_8" opacity="0" fill="#f6861f" stroke="#000" stroke-width="0" x="236.075" y="317.5" font-size="50" font-family="Euphoria, sans-serif"
+        <text id="svg_8" opacity="0" fill="#f6861f" stroke="#000" stroke-width="0" x="201" y="317.5" font-size="50" font-family="Euphoria, sans-serif"
             text-anchor="start" xml:space="preserve" font-style="italic" font-weight="normal">0%</text>
     </g>
 </svg>
@@ -84,69 +84,135 @@
     //Return Progress downloaded in relation of 100 percent. -> int
     getProgressDownloaded = (chunkTotal, sizeFileBytes) => {
 
-        return (this.chunkTotal * 100) / this.sizeFileBytes;
+        return (chunkTotal * 100) / sizeFileBytes;
     }
 
-    //RefreshSVG sync with progress
-    refreshSVGDownload = (progress) => {
+    //RefreshSVGLogo sync with progress
+    refreshSVGLogoDownload = (progress, arraySVGLogo) => {
 
-        let indexSVG = parseInt(this.progress / 12.5);
-        let opacitySVG = this.progress / (12.5 * (indexSVG + 1));
-        console.log(progress)
-        document.getElementById("svg_" + indexSVG).setAttribute("opacity", opacitySVG);
+        //TotalDownload = 100% -> 100/12.6 = 7.936..., parseInt(7.936...) -> 7, we only have 7 rect SVG Logo 
+        let indexSVG = parseInt(progress / 12.6);
+        let opacitySVG = progress / (12.6 * (indexSVG + 1));
+        arraySVGLogo[indexSVG].setAttribute("opacity", opacitySVG);
     }
 
-    //RefreshTXT sync with progress
-    refreshTextDownload = (progress) => {
+    //RefreshSVGText sync with progress
+    refreshSVGTextDownload = (sizeFileBytes, progress, SVGText) => {
 
-        document.getElementById("svg_8").textContent = this.progress + "%"
+        if (sizeFileBytes)
+            SVGText.textContent = progress.toFixed(2) + "%"
+        // document.getElementById("svg_8").textContent = progress.toFixed(2) + "%"
+        // else
+        // document.getElementById("svg_8").textContent=this.
     }
 
-    //Variables
-    //The amount of file in bytes 
-    var sizeFileBytes,
+    //Initial animation, only for UX purposes
+    animSVGInitDownload = (SVGText, arraySVGLogo) => {
 
-        //The Name of File
-        fileName,
+        SVGText.setAttribute("font-size", "29")
+        SVGText.setAttribute("opacity", "1")
+        arraySVGLogo.forEach(element => {
+            element.setAttribute("opacity", "1");
+        });
 
-        //Small pieces of chunks
-        chunks,
+        SVGText.textContent = "Descargando...";
+        console.log("Waiting for download...");
 
-        //The chunk total downloaded
-        chunkTotal,
+        animLoadingGYM = setInterval(() => {
 
-        //The progress of download(0% - 100%)
-        progress,
+            let tempColors = []
 
-        //Start download
-        download = () => {
+            for (let i = 0; i < arraySVGLogo.length; i++)
+                tempColors[i] = arraySVGLogo[i].getAttribute("fill");
 
-            //Here we instantiate variables.
+            for (let i = 1; i < arraySVGLogo.length; i++) {
+
+                arraySVGLogo[i].setAttribute("fill", tempColors[i - 1]);
+
+                if (i == arraySVGLogo.length - 1)
+                    arraySVGLogo[0].setAttribute("fill", tempColors[i]);
+            }
+
+        }, 100);
+    }
+
+    //ResetSVGLogo and SVGText, for AnimDownload1
+    resetForAnim1 = (SVGText, arraySVGLogo, initialColorsSVGLogo) => {
+        
+        for (let i = 0; i < arraySVGLogo.length; i++) {
+            arraySVGLogo[i].setAttribute("opacity", "0");
+            arraySVGLogo[i].setAttribute("fill", initialColorsSVGLogo[i])
+        }
+        SVGText.textContent = "";
+        SVGText.setAttribute("font-size", "50")
+    }
+
+    var animLoadingGYM;
+
+    //Start download
+    download = () => {
+
+
+        //Here we instantiate variables.
+        //Array of DOM SVG logo
+        let arraySVGLogo = [],
+
+            //Palette of Colors of GYM
+            initialColorsSVGLogo = [],
+
+            //The Text of DOM SVG
+            SVGText = document.getElementById("svg_8"),
+
             //The amount of file in bytes 
-            sizeFileBytes = "";
+            sizeFileBytes = "",
 
             //The Name of File
-            fileName = "";
+            fileName = "",
 
             //Small pieces of chunks
-            chunks = new Uint8Array();
+            chunks = new Uint8Array(),
 
             //The chunk total downloaded
-            chunkTotal = 0;
+            chunkTotal = 0,
 
             //The progress of download(0% - 100%)
-            progress = 0;
+            progress = 0,
 
-            let IDLink = document.getElementById("IDLink").value;
-            // Con content-length: 0Bxnfj-yjKsboclQ0S005VWctWUU
-            // Sin content-length: 1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk
+            //The ID of Drive
+            IDLink = document.getElementById("IDLink").value;
 
-            fetch("https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?export=download&id=" + IDLink,
-                {
-                    method: 'GET',
-                    mode: 'cors',
-                    redirect: 'follow'
-                }).then(response => {
+
+        for (let i = 0; i < 8; i++) {
+            arraySVGLogo[i] = document.getElementById("svg_" + i);
+            initialColorsSVGLogo[i] = arraySVGLogo[i].getAttribute("fill");
+        }
+
+
+        //Anim Initial
+        animSVGInitDownload(SVGText, arraySVGLogo);
+
+        //Con content-length: 0Bxnfj-yjKsboclQ0S005VWctWUU
+        //Sin content-length: 1FsuCRCX-ZB5FlCKVxgYNtSqU1tJetUTk
+
+        fetch("https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?export=download&id=" + IDLink,
+            {
+                method: 'GET',
+                mode: 'cors',
+                redirect: 'follow'
+            }).then(response => {
+                if (response.status === 404 || response.status === 400) {
+
+                    //RemoveInitDownload and reset The SVG and TXT content
+                    console.log("kill timeout of init Anim")
+                    clearTimeout(animLoadingGYM)
+                    SVGText.setAttribute("font-size","50")
+                    SVGText.textContent = "Error"
+                }
+                else if (response.status === 200) {
+
+                    //RemoveInitDownload and reset The SVG and TXT content
+                    console.log("kill timeout of init Anim")
+                    clearTimeout(animLoadingGYM)
 
                     //Enable visibility of text and Background, check use case
                     document.getElementById("canvas_background").setAttribute("opacity", 1);
@@ -154,10 +220,14 @@
 
                     //Get SizeFile
                     sizeFileBytes = response.headers.get("Content-Length");
-                    console.log("Tamaño en bytes: " + sizeFileBytes);
-                    console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
+                    if (sizeFileBytes) {
+                        console.log("Tamaño en bytes: " + sizeFileBytes);
+                        console.log("Tamaño de archivo: " + formatBytes(sizeFileBytes));
+                        resetForAnim1(SVGText, arraySVGLogo, initialColorsSVGLogo);
+                    }
+                    else console.log("Tamaño de bytes 0, debido a q no posee un content-length")
 
-                    //Get FileNameileName
+                    //Get FileName
                     let disposition = response.headers.get('Content-Disposition');
                     fileName = getFileName(disposition);
                     console.log("Nombre del archivo: " + fileName)
@@ -181,7 +251,7 @@
                                         //Tell the browser that we have finished sending data and ask to user where save the file.
                                         var blob = new Blob([chunks], { type: "octet/stream" });
                                         saveAs(blob, fileName);
-
+                                        console.log("Enviar solicitud al Agente de Cerrar el link Público");
                                         controller.close();
                                         return;
                                     }
@@ -191,8 +261,9 @@
                                     progress = getProgressDownloaded(chunkTotal, sizeFileBytes)
 
                                     //Refresh UIDownload
-                                    refreshTextDownload(progress);
-                                    refreshSVGDownload(progress);
+                                    refreshSVGTextDownload(sizeFileBytes, progress, SVGText);
+
+                                    refreshSVGLogoDownload(progress, arraySVGLogo);
                                     console.log(progress);
 
                                     //The append of chunks
@@ -206,6 +277,8 @@
                             push();
                         }
                     });
-                }).catch(errorHandler);
-        }
+
+                }
+            }).catch(errorHandler);
+    }
 </script>
