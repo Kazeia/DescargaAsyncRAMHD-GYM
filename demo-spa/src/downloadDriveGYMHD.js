@@ -141,9 +141,6 @@ const download = () => {
         //The Name of File
         fileName = "",
 
-        //Small pieces of chunks
-        // chunks = new Uint8Array(),
-
         //The chunk total downloaded
         chunkTotal = 0,
 
