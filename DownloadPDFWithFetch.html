@@ -213,10 +213,6 @@
                 }
                 else if (response.status === 200) {
 
-                    //Enable visibility of text and Background, check use case
-                    // document.getElementById("canvas_background").setAttribute("opacity", 1);
-                    // document.getElementById("svg_8").setAttribute("opacity", 1);
-
                     //Get SizeFile
                     sizeFileBytes = response.headers.get("Content-Length");
                     if (sizeFileBytes) {
