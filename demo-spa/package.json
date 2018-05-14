@@ -6,6 +6,7 @@
     "react": "^16.3.2",
     "file-saver": "latest",
     "react-router-dom": "latest",
+    "streamsaver": "latest",
     "react-dom": "^16.3.2",
     "react-scripts": "1.1.4"
   },

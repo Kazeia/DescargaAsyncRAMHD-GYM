@@ -1,5 +1,6 @@
 import React from 'react'
-import downloadDriveGYM from './downloadDriveGYM.js'
+// import downloadDriveGYM from './downloadDriveGYMRAM.js'
+import downloadDriveGYM from './downloadDriveGYMHD.js'
 import {
   BrowserRouter,
   Route,
