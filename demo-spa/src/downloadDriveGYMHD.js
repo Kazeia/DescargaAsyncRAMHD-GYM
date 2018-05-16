@@ -112,6 +112,8 @@ const resetForAnim1 = (SVGText, arraySVGLogo, initialColorsSVGLogo) => {
 }
 
 var animLoadingGYM;
+var reader;
+var writer;
 
 //Start download
 const download = () => {
@@ -213,8 +215,8 @@ const download = () => {
                 }
 
                 //getReader -> Firefox not supported :|, allow download a file in chunks
-                const writer = fileStream.getWriter();
-                const reader = response.body.getReader();
+                writer = fileStream.getWriter();
+                reader = response.body.getReader();
 
                 function push() {
                     return reader.read().then(result => {
@@ -250,12 +252,17 @@ const download = () => {
 
                             return writer.write(result.value).then(push)
                         }
-                    });
+                    }).catch(()=>{alert("Se perdio la conexión");writer.abort("Fail!");});
                 }
                 push();
             }
         }).catch(errorHandler);
 }
+
+window.onunload = () => {
+    reader.cancel();
+    return;
+};
 
 export default {
 
